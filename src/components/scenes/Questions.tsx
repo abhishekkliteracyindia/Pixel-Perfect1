@@ -36,24 +36,40 @@ function Question({ lead, question, small, yesLines, onDone, doneLabel, noPopupP
   const askAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    if (state === "yes" && yesAudioSrc && !audioPlayed.current) {
-      audioPlayed.current = true;
+    let isActive = true;
+    if (state === "yes" && yesAudioSrc) {
       const audio = new Audio(yesAudioSrc);
-      audioRef.current = audio;
       
-      audio.onended = () => setAudioFinished(true);
-      audio.play().catch(() => setAudioFinished(true));
+      audio.onended = () => {
+        if (isActive) setAudioFinished(true);
+      };
+      audio.play().catch(() => {
+        if (isActive) setAudioFinished(true);
+      });
+
+      return () => {
+        isActive = false;
+        audio.pause();
+      };
     }
   }, [state, yesAudioSrc]);
 
   useEffect(() => {
-    if (state === "ask" && askAudioSrc && !askAudioPlayed.current) {
-      askAudioPlayed.current = true;
+    let isActive = true;
+    if (state === "ask" && askAudioSrc) {
       const audio = new Audio(askAudioSrc);
-      askAudioRef.current = audio;
       
-      audio.onended = () => setAskAudioFinished(true);
-      audio.play().catch(() => setAskAudioFinished(true));
+      audio.onended = () => {
+        if (isActive) setAskAudioFinished(true);
+      };
+      audio.play().catch(() => {
+        if (isActive) setAskAudioFinished(true);
+      });
+
+      return () => {
+        isActive = false;
+        audio.pause();
+      };
     }
   }, [state, askAudioSrc]);
 

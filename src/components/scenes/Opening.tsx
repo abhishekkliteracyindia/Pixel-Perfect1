@@ -35,7 +35,7 @@ export function Opening({ onYes }: { onYes: () => void }) {
     });
 
     return () => {
-      audio.pause();
+      // Intentionally not pausing audio here so strict mode double-mounts don't kill it.
     };
   }, [hasEntered]);
 

@@ -12,12 +12,21 @@ export function Photos({ onNext }: { onNext: () => void }) {
   const audioPlayed = useRef(false);
 
   useEffect(() => {
-    if (audioPlayed.current) return;
-    audioPlayed.current = true;
-
+    let isActive = true;
     const audio = new Audio(peaceAudioSrc);
-    audio.onended = () => setAudioFinished(true);
-    audio.play().catch(() => setAudioFinished(true));
+    
+    audio.onended = () => {
+      if (isActive) setAudioFinished(true);
+    };
+    
+    audio.play().catch(() => {
+      if (isActive) setAudioFinished(true);
+    });
+
+    return () => {
+      isActive = false;
+      audio.pause();
+    };
   }, []);
 
   return (

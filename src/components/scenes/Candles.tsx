@@ -15,25 +15,27 @@ export function Candles({ onNext }: { onNext: () => void }) {
   const done = blown === total;
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioPlayed = useRef(false);
   const [audioFinished, setAudioFinished] = useState(false);
 
   useEffect(() => {
-    if (done && !audioPlayed.current) {
-      audioPlayed.current = true;
+    let isActive = true;
+    if (done) {
       const audio = new Audio(happyAudioSrc);
       audioRef.current = audio;
 
-      audio.onended = () => setAudioFinished(true);
-      audio.play().catch(() => setAudioFinished(true));
+      audio.onended = () => {
+        if (isActive) setAudioFinished(true);
+      };
+      audio.play().catch(() => {
+        if (isActive) setAudioFinished(true);
+      });
+
+      return () => {
+        isActive = false;
+        audio.pause();
+      };
     }
   }, [done]);
-
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause();
-    };
-  }, []);
 
   const blow = (i: number) => {
     if (out[i]) return;

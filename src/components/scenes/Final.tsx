@@ -24,46 +24,22 @@ export function Final({ onReplay }: { onReplay: () => void }) {
       if (isActive) setAudioFinished(true);
     };
 
-    // Calculate when the final text and characters finish appearing
     const delaySeconds = 0.5 + lines.length * 1.6;
 
-    // Play immediately at 0 volume to consume the active user gesture token
-    audio.volume = 0;
-    const playPromise = audio.play();
-
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        if (!isActive) return;
-        
-        // Successfully unlocked! Pause and prepare for real playback.
-        audio.pause();
-        audio.currentTime = 0;
-        audio.volume = 1;
-
-        // Wait for the text animation to finish
-        t = setTimeout(() => {
-          if (!isActive) return;
-          audio.play().catch(() => {
-            if (isActive) setAudioFinished(true);
-          });
-        }, delaySeconds * 1000);
-      }).catch(() => {
-        // Fallback if the browser still blocks the immediate play
-        if (!isActive) return;
-        t = setTimeout(() => {
-          if (!isActive) return;
-          audio.volume = 1;
-          audio.play().catch(() => {
-            if (isActive) setAudioFinished(true);
-          });
-        }, delaySeconds * 1000);
+    // We do NOT use the volume=0 trick here because the user gesture might expire
+    // during the delay. Instead we rely on the gesture from the previous slide's "Next" button.
+    t = setTimeout(() => {
+      if (!isActive) return;
+      audio.play().catch(() => {
+        // If it still blocks, just show the button
+        if (isActive) setAudioFinished(true);
       });
-    }
+    }, delaySeconds * 1000);
 
     return () => {
       isActive = false;
       clearTimeout(t);
-      audio.pause();
+      // intentionally not pausing the audio so strict mode double-mounts don't kill it
     };
   }, [lines.length]);
   return (

@@ -5,9 +5,11 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import netlify from "@netlify/vite-plugin-tanstack-start";
 
 export default defineConfig({
   vite: {
+    plugins: [netlify()],
     assetsInclude: ["**/*.mpeg"],
   },
   tanstackStart: {
@@ -15,4 +17,5 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  nitro: false
 });

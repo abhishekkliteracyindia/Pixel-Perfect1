@@ -63,7 +63,7 @@ export function Shayari({ onNext }: { onNext: () => void }) {
       <Grain />
       <div className="relative z-10 flex w-full max-w-lg flex-col items-center">
         {/* Glowing Image */}
-        <Line delay={0.2} className="relative mb-8 mt-4 flex justify-center">
+        <Line as="div" delay={0.2} className="relative mb-8 mt-4 flex justify-center">
           <div className="absolute inset-[-10px] animate-pulse rounded-full bg-gold/70 blur-2xl" />
           <div className="absolute inset-0 animate-pulse rounded-full bg-yellow-300 blur-3xl opacity-60" />
           <img
