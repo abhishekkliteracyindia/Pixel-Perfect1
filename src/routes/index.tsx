@@ -4,7 +4,6 @@ import { PlayfulAnimals } from "@/components/Animals";
 import { Overlay } from "@/components/Overlay";
 import { BirthdayMessage } from "@/components/scenes/BirthdayMessage";
 import { Candles } from "@/components/scenes/Candles";
-import { Cinema } from "@/components/scenes/Cinema";
 import { Curtain } from "@/components/scenes/Curtain";
 import { Final } from "@/components/scenes/Final";
 import { Opening } from "@/components/scenes/Opening";
@@ -52,7 +51,6 @@ function Index() {
           {scene === "valentine" && <ValentineQuestion onNext={next} />}
           {scene === "date" && <DateQuestion onNext={next} />}
           {scene === "reveal" && <Reveal onNext={next} />}
-          {scene === "cinema" && <Cinema onNext={next} />}
           {scene === "shayari" && <Shayari onNext={next} />}
           {scene === "universe" && <Universe onNext={next} />}
           {scene === "final" && <Final onReplay={restart} />}

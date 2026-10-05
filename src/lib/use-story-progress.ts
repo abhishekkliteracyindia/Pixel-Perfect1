@@ -9,7 +9,6 @@ export const SCENES = [
   "valentine",
   "date",
   "reveal",
-  "cinema",
   "shayari",
   "final",
 ] as const;
@@ -24,14 +23,14 @@ export function useStoryProgress() {
 
   useEffect(() => {
     try {
-      // Opening an invite link (?room=) jumps straight into the movie room.
-      if (new URLSearchParams(window.location.search).get("room")) {
-        setScene("cinema");
-        setHydrated(true);
-        return;
-      }
       const saved = localStorage.getItem(KEY) as SceneId | null;
-      if (saved && SCENES.includes(saved)) setScene(saved);
+      
+      // If they were stuck on cinema, jump them to shayari
+      if (saved === ("cinema" as any)) {
+        setScene("shayari");
+      } else if (saved && SCENES.includes(saved)) {
+        setScene(saved);
+      }
     } catch {
       /* storage unavailable — start from the beginning */
     }

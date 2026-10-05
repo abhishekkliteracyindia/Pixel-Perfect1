@@ -1,6 +1,4 @@
-import { n as getMovie, r as useServerFn } from "./movie.functions-BCKk6Esn.js";
 import { t as story } from "./story-D_W9cmZ4.js";
-import { t as supabase } from "./client-C4TnLwRR.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -864,22 +862,24 @@ function Candles({ onNext }) {
 	const blown = out.filter(Boolean).length;
 	const done = blown === total;
 	const audioRef = useRef(null);
-	const audioPlayed = useRef(false);
 	const [audioFinished, setAudioFinished] = useState(false);
 	useEffect(() => {
-		if (done && !audioPlayed.current) {
-			audioPlayed.current = true;
+		let isActive = true;
+		if (done) {
 			const audio = new Audio(happy_default);
 			audioRef.current = audio;
-			audio.onended = () => setAudioFinished(true);
-			audio.play().catch(() => setAudioFinished(true));
+			audio.onended = () => {
+				if (isActive) setAudioFinished(true);
+			};
+			audio.play().catch(() => {
+				if (isActive) setAudioFinished(true);
+			});
+			return () => {
+				isActive = false;
+				audio.pause();
+			};
 		}
 	}, [done]);
-	useEffect(() => {
-		return () => {
-			audioRef.current?.pause();
-		};
-	}, []);
 	const blow = (i) => {
 		if (out[i]) return;
 		sfx.candle();
@@ -1125,6 +1125,143 @@ function Candles({ onNext }) {
 	});
 }
 //#endregion
+//#region src/assets/khulja.mp4
+var khulja_default = "/assets/khulja-Diox9Xmu.mp4";
+//#endregion
+//#region src/components/scenes/Curtain.tsx
+/** Walking forward → curtains part → the birthday room is revealed. */
+function Curtain({ onNext }) {
+	const reduced = useReducedMotion();
+	const [stage, setStage] = useState("walk");
+	useEffect(() => {
+		const audio = new Audio(khulja_default);
+		let stageTimer;
+		const initTimer = setTimeout(() => {
+			audio.onplay = () => {
+				setStage("open");
+				sfx.curtain();
+				stageTimer = setTimeout(() => setStage("room"), 2e3);
+			};
+			audio.play().catch(() => {
+				setStage("open");
+				sfx.curtain();
+				stageTimer = setTimeout(() => setStage("room"), 2e3);
+			});
+		}, reduced ? 600 : 2600);
+		return () => {
+			clearTimeout(initTimer);
+			clearTimeout(stageTimer);
+			audio.pause();
+		};
+	}, [reduced]);
+	return /* @__PURE__ */ jsxs(Scene, {
+		dark: true,
+		className: "bg-[#1b1010]",
+		children: [
+			/* @__PURE__ */ jsx(Particles, { count: 18 }),
+			/* @__PURE__ */ jsx(Grain, {}),
+			/* @__PURE__ */ jsxs(motion.div, {
+				className: "absolute inset-0 flex flex-col items-center justify-center",
+				initial: {
+					scale: 1.25,
+					opacity: .25
+				},
+				animate: {
+					scale: stage === "walk" ? 1.25 : 1,
+					opacity: stage === "walk" ? .3 : 1
+				},
+				transition: {
+					duration: 3.2,
+					ease: "easeInOut"
+				},
+				children: [
+					/* @__PURE__ */ jsx("div", { className: "absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,color-mix(in_oklab,var(--gold)_38%,transparent),transparent_60%)]" }),
+					/* @__PURE__ */ jsx("div", {
+						"aria-hidden": true,
+						className: "absolute top-10 flex w-full justify-center gap-4 text-xl opacity-80",
+						children: Array.from({ length: 9 }, (_, i) => /* @__PURE__ */ jsx(motion.span, {
+							animate: reduced ? {} : { opacity: [
+								.35,
+								1,
+								.35
+							] },
+							transition: {
+								duration: 2.4,
+								repeat: Infinity,
+								delay: i * .22
+							},
+							children: "✨"
+						}, i))
+					}),
+					/* @__PURE__ */ jsxs("div", {
+						className: `relative z-10 flex flex-col items-center transition-transform duration-700 ${stage === "room" ? "-translate-y-32 sm:-translate-y-36" : ""}`,
+						children: [/* @__PURE__ */ jsx("span", {
+							className: "text-6xl sm:text-7xl",
+							children: "🎂"
+						}), /* @__PURE__ */ jsxs("div", {
+							className: "mt-4 flex gap-3 text-3xl",
+							children: [
+								/* @__PURE__ */ jsx("span", { children: "🌸" }),
+								/* @__PURE__ */ jsx("span", { children: "🖼️" }),
+								/* @__PURE__ */ jsx("span", { children: "🕯️" }),
+								/* @__PURE__ */ jsx("span", { children: "🌷" })
+							]
+						})]
+					})
+				]
+			}),
+			["left", "right"].map((side) => /* @__PURE__ */ jsx(motion.div, {
+				"aria-hidden": true,
+				className: "absolute top-0 bottom-0 w-1/2 bg-[linear-gradient(90deg,#4a1220,#7a1f33,#4a1220)] shadow-[0_0_80px_rgba(0,0,0,0.6)]",
+				style: side === "left" ? { left: 0 } : { right: 0 },
+				initial: { x: 0 },
+				animate: { x: stage === "walk" ? 0 : side === "left" ? "-102%" : "102%" },
+				transition: {
+					duration: reduced ? .5 : 2,
+					ease: [
+						.4,
+						0,
+						.2,
+						1
+					]
+				}
+			}, side)),
+			/* @__PURE__ */ jsxs("div", {
+				className: `relative z-20 flex flex-col items-center text-center ${stage === "room" ? "translate-y-20 sm:translate-y-24" : ""}`,
+				children: [stage === "walk" && /* @__PURE__ */ jsx(Line, {
+					delay: .8,
+					className: "hand text-2xl text-ivory/90",
+					children: "come closer..."
+				}), stage === "room" && /* @__PURE__ */ jsxs(Fragment, { children: [
+					/* @__PURE__ */ jsxs(Line, {
+						as: "h1",
+						className: "font-display text-4xl text-ivory sm:text-5xl",
+						children: [
+							"For ",
+							story.birthdayName,
+							" ❤️"
+						]
+					}),
+					/* @__PURE__ */ jsx(Line, {
+						delay: .7,
+						className: "mt-3 text-ivory/70",
+						children: "I built you a little universe."
+					}),
+					/* @__PURE__ */ jsx(Line, {
+						delay: 1.3,
+						className: "mt-8",
+						children: /* @__PURE__ */ jsx(StoryButton, {
+							tone: "gold",
+							onClick: onNext,
+							children: "Come in 🕯️"
+						})
+					})
+				] })]
+			})
+		]
+	});
+}
+//#endregion
 //#region src/components/Characters.tsx
 /**
 * Original hand-drawn style cartoon characters.
@@ -1364,561 +1501,6 @@ function Him({ mood = "happy", size = 110, className = "" }) {
 	});
 }
 //#endregion
-//#region src/lib/use-watch-room.ts
-var ROOM_KEY = "our-little-universe:room";
-/** Room id comes from the invite link (?room=) or is created once and remembered. */
-function resolveRoom() {
-	const fromUrl = new URLSearchParams(window.location.search).get("room");
-	if (fromUrl && /^[a-z0-9]{6,32}$/i.test(fromUrl)) return {
-		id: fromUrl,
-		guest: true
-	};
-	let id = localStorage.getItem(ROOM_KEY);
-	if (!id) {
-		id = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
-		localStorage.setItem(ROOM_KEY, id);
-	}
-	return {
-		id,
-		guest: false
-	};
-}
-function useWatchRoom(roomId, videoRef, onReaction) {
-	const channelRef = useRef(null);
-	const suppress = useRef(false);
-	const suppressTimeout = useRef(null);
-	const remoteSeeking = useRef(false);
-	const [messages, setMessages] = useState([]);
-	const [watching, setWatching] = useState(1);
-	const reactRef = useRef(onReaction);
-	reactRef.current = onReaction;
-	const applyRemote = useCallback(async (c) => {
-		const v = videoRef.current;
-		if (!v) return;
-		suppress.current = true;
-		if (Math.abs(v.currentTime - c.t) > .6) {
-			remoteSeeking.current = true;
-			v.currentTime = c.t;
-		}
-		try {
-			if (c.type === "play" || c.type === "state" && !c.paused) await v.play();
-			if (c.type === "pause" || c.type === "state" && c.paused) v.pause();
-		} catch {}
-		if (suppressTimeout.current) clearTimeout(suppressTimeout.current);
-		suppressTimeout.current = setTimeout(() => {
-			suppress.current = false;
-			suppressTimeout.current = null;
-		}, 400);
-	}, [videoRef]);
-	useEffect(() => {
-		if (!roomId) return;
-		const me = Math.random().toString(36).slice(2);
-		const ch = supabase.channel(`movie-room-${roomId}`, { config: {
-			broadcast: { self: false },
-			presence: { key: me }
-		} });
-		ch.on("broadcast", { event: "ctl" }, ({ payload }) => applyRemote(payload)).on("broadcast", { event: "state" }, ({ payload }) => applyRemote(payload)).on("broadcast", { event: "hello" }, () => {
-			const v = videoRef.current;
-			if (v) ch.send({
-				type: "broadcast",
-				event: "state",
-				payload: {
-					type: "state",
-					t: v.currentTime,
-					paused: v.paused
-				}
-			});
-		}).on("broadcast", { event: "chat" }, ({ payload }) => setMessages((m) => [...m.slice(-49), payload])).on("broadcast", { event: "react" }, ({ payload }) => reactRef.current(payload.e)).on("presence", { event: "sync" }, () => setWatching(Math.max(1, Object.keys(ch.presenceState()).length))).subscribe(async (status) => {
-			if (status === "SUBSCRIBED") await ch.track({ at: Date.now() });
-		});
-		channelRef.current = ch;
-		return () => {
-			channelRef.current = null;
-			supabase.removeChannel(ch);
-		};
-	}, [
-		roomId,
-		applyRemote,
-		videoRef
-	]);
-	const requestSync = useCallback(() => {
-		channelRef.current?.send({
-			type: "broadcast",
-			event: "hello",
-			payload: {}
-		});
-	}, []);
-	return {
-		messages,
-		watching,
-		sendCtl: useCallback((type) => {
-			const v = videoRef.current;
-			if (!v) return;
-			if (type === "seek" && remoteSeeking.current) {
-				remoteSeeking.current = false;
-				return;
-			}
-			if (suppress.current) return;
-			channelRef.current?.send({
-				type: "broadcast",
-				event: "ctl",
-				payload: {
-					type,
-					t: v.currentTime
-				}
-			});
-		}, [videoRef]),
-		sendChat: useCallback((name, text) => {
-			const msg = {
-				id: `${Date.now()}-${Math.random()}`,
-				name,
-				text: text.slice(0, 300)
-			};
-			setMessages((m) => [...m.slice(-49), msg]);
-			channelRef.current?.send({
-				type: "broadcast",
-				event: "chat",
-				payload: msg
-			});
-		}, []),
-		sendReaction: useCallback((e) => {
-			channelRef.current?.send({
-				type: "broadcast",
-				event: "react",
-				payload: { e }
-			});
-		}, []),
-		requestSync
-	};
-}
-//#endregion
-//#region src/components/scenes/Cinema.tsx
-var REACTIONS = [
-	"❤️",
-	"😂",
-	"😭",
-	"👀",
-	"🥺",
-	"🍿"
-];
-function Cinema({ onNext }) {
-	const fetchMovie = useServerFn(getMovie);
-	const [src, setSrc] = useState(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
-	const [room, setRoom] = useState(null);
-	const [invite, setInvite] = useState(false);
-	const [copied, setCopied] = useState(false);
-	const [text, setText] = useState("");
-	const [floating, setFloating] = useState([]);
-	const videoRef = useRef(null);
-	const float = (e) => {
-		const id = Date.now() + Math.random();
-		setFloating((f) => [...f, {
-			id,
-			e,
-			x: 10 + Math.random() * 80
-		}]);
-		setTimeout(() => setFloating((f) => f.filter((r) => r.id !== id)), 2200);
-	};
-	const { messages, watching, sendCtl, sendChat, sendReaction, requestSync } = useWatchRoom(room?.id ?? null, videoRef, float);
-	useEffect(() => {
-		const r = resolveRoom();
-		setRoom(r);
-		if (!r.guest) setInvite(true);
-		fetchMovie().then((m) => setSrc(m.url ?? (story.movie.src || null))).catch(() => setSrc(story.movie.src || null)).finally(() => setLoading(false));
-	}, [fetchMovie]);
-	const myName = room?.guest ? "Me ❤️" : story.birthdayName;
-	const link = room && typeof window !== "undefined" ? `${window.location.origin}/?room=${room.id}` : "";
-	const copy = async () => {
-		try {
-			await navigator.clipboard.writeText(link);
-			setCopied(true);
-			setTimeout(() => setCopied(false), 2e3);
-		} catch {
-			window.prompt("Copy this link:", link);
-		}
-	};
-	const share = () => {
-		const msg = `Wanna watch a movie with me? 🍿❤️ Join here: ${link}`;
-		window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
-	};
-	const react = (e) => {
-		float(e);
-		sendReaction(e);
-	};
-	return /* @__PURE__ */ jsxs(Scene, {
-		dark: true,
-		className: "justify-start pt-10",
-		children: [
-			/* @__PURE__ */ jsx(Grain, {}),
-			/* @__PURE__ */ jsx("div", {
-				"aria-hidden": true,
-				className: "absolute inset-y-0 left-0 w-6 bg-[linear-gradient(90deg,#4a1220,#7a1f33)] sm:w-16"
-			}),
-			/* @__PURE__ */ jsx("div", {
-				"aria-hidden": true,
-				className: "absolute inset-y-0 right-0 w-6 bg-[linear-gradient(270deg,#4a1220,#7a1f33)] sm:w-16"
-			}),
-			/* @__PURE__ */ jsxs("div", {
-				className: "relative z-10 flex w-full max-w-3xl flex-col items-center",
-				children: [
-					/* @__PURE__ */ jsx(Line, {
-						as: "h2",
-						className: "text-center font-display text-3xl text-gold",
-						children: "Welcome to our first movie night 🍿❤️"
-					}),
-					/* @__PURE__ */ jsx("p", {
-						className: "mt-2 text-xs text-ivory/60",
-						children: watching > 1 ? "💞 You're both here" : "Waiting for your movie partner…"
-					}),
-					/* @__PURE__ */ jsxs("div", {
-						className: "relative mt-5 w-full overflow-hidden rounded-2xl border-4 border-gold/40 bg-night shadow-[0_0_60px_-10px_var(--gold)]",
-						children: [src ? /* @__PURE__ */ jsx("video", {
-							ref: videoRef,
-							src,
-							controls: true,
-							preload: "metadata",
-							playsInline: true,
-							poster: story.movie.poster,
-							onLoadedMetadata: () => requestSync(),
-							onPlay: () => sendCtl("play"),
-							onPause: () => sendCtl("pause"),
-							onSeeked: () => sendCtl("seek"),
-							onError: () => setError("Oops... the movie didn't want to load 😭 Try refreshing."),
-							className: "aspect-video w-full bg-night"
-						}) : /* @__PURE__ */ jsxs("div", {
-							className: "relative aspect-video w-full",
-							children: [/* @__PURE__ */ jsx("img", {
-								src: story.movie.poster,
-								alt: "Movie poster",
-								className: "h-full w-full object-cover opacity-70"
-							}), /* @__PURE__ */ jsx("p", {
-								className: "absolute inset-x-0 bottom-4 text-center font-display text-xl text-ivory",
-								children: loading ? "Getting the movie ready… 🍿" : "The movie is almost here… 🎬"
-							})]
-						}), /* @__PURE__ */ jsx(AnimatePresence, { children: floating.map((r) => /* @__PURE__ */ jsx(motion.span, {
-							initial: {
-								opacity: 0,
-								y: 0,
-								scale: .6
-							},
-							animate: {
-								opacity: [
-									0,
-									1,
-									0
-								],
-								y: -120,
-								scale: 1.2
-							},
-							exit: { opacity: 0 },
-							transition: { duration: 2 },
-							className: "pointer-events-none absolute bottom-16 text-3xl",
-							style: { left: `${r.x}%` },
-							children: r.e
-						}, r.id)) })]
-					}),
-					error && /* @__PURE__ */ jsx("p", {
-						className: "mt-3 text-center text-sm text-blush",
-						children: error
-					}),
-					/* @__PURE__ */ jsxs("div", {
-						className: "mt-5 flex items-end justify-center gap-10",
-						children: [
-							/* @__PURE__ */ jsxs("div", {
-								className: "flex flex-col items-center",
-								children: [/* @__PURE__ */ jsx(Her, {
-									size: 56,
-									mood: "happy"
-								}), /* @__PURE__ */ jsxs("span", {
-									className: "-mt-2 rounded-t-2xl bg-wine px-6 py-2 text-sm text-ivory",
-									children: ["🎀 ", story.birthdayName]
-								})]
-							}),
-							/* @__PURE__ */ jsx("span", {
-								className: "mb-3 text-3xl",
-								children: "🍿🥤"
-							}),
-							/* @__PURE__ */ jsxs("div", {
-								className: "flex flex-col items-center",
-								children: [/* @__PURE__ */ jsx(Him, {
-									size: 52,
-									mood: watching > 1 ? "blush" : "happy"
-								}), /* @__PURE__ */ jsx("span", {
-									className: "-mt-2 rounded-t-2xl bg-wine px-6 py-2 text-sm text-ivory",
-									children: "❤️ Me"
-								})]
-							})
-						]
-					}),
-					/* @__PURE__ */ jsx("div", {
-						className: "mt-4 flex flex-wrap justify-center gap-2",
-						"aria-label": "Reactions",
-						children: REACTIONS.map((e) => /* @__PURE__ */ jsx("button", {
-							onClick: () => react(e),
-							"aria-label": `React ${e}`,
-							className: "h-12 w-12 rounded-full bg-ivory/10 text-2xl transition hover:bg-ivory/20",
-							children: e
-						}, e))
-					}),
-					/* @__PURE__ */ jsxs("div", {
-						className: "mt-5 w-full max-w-md rounded-2xl bg-ivory/5 p-3",
-						children: [/* @__PURE__ */ jsxs("div", {
-							className: "max-h-40 space-y-1 overflow-y-auto text-sm",
-							children: [messages.length === 0 && /* @__PURE__ */ jsx("p", {
-								className: "text-ivory/50",
-								children: "Say something cute 💬"
-							}), messages.map((m) => /* @__PURE__ */ jsxs("p", { children: [
-								/* @__PURE__ */ jsxs("span", {
-									className: "font-medium text-gold",
-									children: [m.name, ":"]
-								}),
-								" ",
-								/* @__PURE__ */ jsx("span", {
-									className: "text-ivory/90",
-									children: m.text
-								})
-							] }, m.id))]
-						}), /* @__PURE__ */ jsxs("form", {
-							className: "mt-2 flex gap-2",
-							onSubmit: (e) => {
-								e.preventDefault();
-								if (!text.trim()) return;
-								sendChat(myName, text.trim());
-								setText("");
-							},
-							children: [/* @__PURE__ */ jsx("input", {
-								value: text,
-								onChange: (e) => setText(e.target.value),
-								maxLength: 300,
-								placeholder: "Type a message…",
-								className: "min-h-11 flex-1 rounded-full bg-ivory/10 px-4 text-ivory placeholder:text-ivory/40"
-							}), /* @__PURE__ */ jsx("button", {
-								className: "min-h-11 rounded-full bg-gold px-4 text-sm font-medium text-wine",
-								children: "Send"
-							})]
-						})]
-					}),
-					/* @__PURE__ */ jsxs("div", {
-						className: "mt-6 flex flex-wrap justify-center gap-3",
-						children: [!room?.guest && /* @__PURE__ */ jsx(StoryButton, {
-							tone: "quiet",
-							onClick: () => setInvite(true),
-							children: "Invite someone 💞"
-						}), !room?.guest && /* @__PURE__ */ jsx(StoryButton, {
-							tone: "gold",
-							onClick: onNext,
-							children: "After the movie... ✉️"
-						})]
-					})
-				]
-			}),
-			/* @__PURE__ */ jsx(AnimatePresence, { children: invite && /* @__PURE__ */ jsx(motion.div, {
-				initial: { opacity: 0 },
-				animate: { opacity: 1 },
-				exit: { opacity: 0 },
-				className: "fixed inset-0 z-50 flex items-center justify-center bg-night/70 px-5 backdrop-blur-sm",
-				onClick: () => setInvite(false),
-				children: /* @__PURE__ */ jsxs(motion.div, {
-					initial: {
-						scale: .85,
-						y: 20
-					},
-					animate: {
-						scale: 1,
-						y: 0
-					},
-					exit: {
-						scale: .9,
-						opacity: 0
-					},
-					transition: {
-						type: "spring",
-						stiffness: 260,
-						damping: 20
-					},
-					onClick: (e) => e.stopPropagation(),
-					role: "dialog",
-					"aria-label": "Invite someone",
-					className: "paper w-full max-w-sm rounded-3xl p-6 text-center text-foreground",
-					children: [
-						/* @__PURE__ */ jsx("div", {
-							className: "flex justify-center",
-							children: /* @__PURE__ */ jsx(Him, {
-								size: 64,
-								mood: "blush"
-							})
-						}),
-						/* @__PURE__ */ jsx("p", {
-							className: "mt-2 font-display text-2xl text-wine",
-							children: "Don't you think you should ask someone to watch a movie with you? 🍿❤️"
-						}),
-						/* @__PURE__ */ jsx("p", {
-							className: "mt-3 break-all rounded-xl bg-blush/40 px-3 py-2 text-xs text-wine",
-							children: link
-						}),
-						/* @__PURE__ */ jsxs("div", {
-							className: "mt-4 flex flex-col gap-2",
-							children: [/* @__PURE__ */ jsx(StoryButton, {
-								tone: "yes",
-								onClick: share,
-								children: "Share on WhatsApp 💬"
-							}), /* @__PURE__ */ jsx(StoryButton, {
-								tone: "no",
-								onClick: copy,
-								children: copied ? "Copied! ✓" : "Copy link 🔗"
-							})]
-						}),
-						/* @__PURE__ */ jsx("button", {
-							onClick: () => setInvite(false),
-							className: "mt-3 text-xs text-muted-foreground underline",
-							children: "maybe later"
-						})
-					]
-				})
-			}) })
-		]
-	});
-}
-//#endregion
-//#region src/assets/khulja.mp4
-var khulja_default = "/assets/khulja-Diox9Xmu.mp4";
-//#endregion
-//#region src/components/scenes/Curtain.tsx
-/** Walking forward → curtains part → the birthday room is revealed. */
-function Curtain({ onNext }) {
-	const reduced = useReducedMotion();
-	const [stage, setStage] = useState("walk");
-	useEffect(() => {
-		const audio = new Audio(khulja_default);
-		let stageTimer;
-		const initTimer = setTimeout(() => {
-			audio.onplay = () => {
-				setStage("open");
-				sfx.curtain();
-				stageTimer = setTimeout(() => setStage("room"), 2e3);
-			};
-			audio.play().catch(() => {
-				setStage("open");
-				sfx.curtain();
-				stageTimer = setTimeout(() => setStage("room"), 2e3);
-			});
-		}, reduced ? 600 : 2600);
-		return () => {
-			clearTimeout(initTimer);
-			clearTimeout(stageTimer);
-			audio.pause();
-		};
-	}, [reduced]);
-	return /* @__PURE__ */ jsxs(Scene, {
-		dark: true,
-		className: "bg-[#1b1010]",
-		children: [
-			/* @__PURE__ */ jsx(Particles, { count: 18 }),
-			/* @__PURE__ */ jsx(Grain, {}),
-			/* @__PURE__ */ jsxs(motion.div, {
-				className: "absolute inset-0 flex flex-col items-center justify-center",
-				initial: {
-					scale: 1.25,
-					opacity: .25
-				},
-				animate: {
-					scale: stage === "walk" ? 1.25 : 1,
-					opacity: stage === "walk" ? .3 : 1
-				},
-				transition: {
-					duration: 3.2,
-					ease: "easeInOut"
-				},
-				children: [
-					/* @__PURE__ */ jsx("div", { className: "absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,color-mix(in_oklab,var(--gold)_38%,transparent),transparent_60%)]" }),
-					/* @__PURE__ */ jsx("div", {
-						"aria-hidden": true,
-						className: "absolute top-10 flex w-full justify-center gap-4 text-xl opacity-80",
-						children: Array.from({ length: 9 }, (_, i) => /* @__PURE__ */ jsx(motion.span, {
-							animate: reduced ? {} : { opacity: [
-								.35,
-								1,
-								.35
-							] },
-							transition: {
-								duration: 2.4,
-								repeat: Infinity,
-								delay: i * .22
-							},
-							children: "✨"
-						}, i))
-					}),
-					/* @__PURE__ */ jsxs("div", {
-						className: `relative z-10 flex flex-col items-center transition-transform duration-700 ${stage === "room" ? "-translate-y-32 sm:-translate-y-36" : ""}`,
-						children: [/* @__PURE__ */ jsx("span", {
-							className: "text-6xl sm:text-7xl",
-							children: "🎂"
-						}), /* @__PURE__ */ jsxs("div", {
-							className: "mt-4 flex gap-3 text-3xl",
-							children: [
-								/* @__PURE__ */ jsx("span", { children: "🌸" }),
-								/* @__PURE__ */ jsx("span", { children: "🖼️" }),
-								/* @__PURE__ */ jsx("span", { children: "🕯️" }),
-								/* @__PURE__ */ jsx("span", { children: "🌷" })
-							]
-						})]
-					})
-				]
-			}),
-			["left", "right"].map((side) => /* @__PURE__ */ jsx(motion.div, {
-				"aria-hidden": true,
-				className: "absolute top-0 bottom-0 w-1/2 bg-[linear-gradient(90deg,#4a1220,#7a1f33,#4a1220)] shadow-[0_0_80px_rgba(0,0,0,0.6)]",
-				style: side === "left" ? { left: 0 } : { right: 0 },
-				initial: { x: 0 },
-				animate: { x: stage === "walk" ? 0 : side === "left" ? "-102%" : "102%" },
-				transition: {
-					duration: reduced ? .5 : 2,
-					ease: [
-						.4,
-						0,
-						.2,
-						1
-					]
-				}
-			}, side)),
-			/* @__PURE__ */ jsxs("div", {
-				className: `relative z-20 flex flex-col items-center text-center ${stage === "room" ? "translate-y-20 sm:translate-y-24" : ""}`,
-				children: [stage === "walk" && /* @__PURE__ */ jsx(Line, {
-					delay: .8,
-					className: "hand text-2xl text-ivory/90",
-					children: "come closer..."
-				}), stage === "room" && /* @__PURE__ */ jsxs(Fragment, { children: [
-					/* @__PURE__ */ jsxs(Line, {
-						as: "h1",
-						className: "font-display text-4xl text-ivory sm:text-5xl",
-						children: [
-							"For ",
-							story.birthdayName,
-							" ❤️"
-						]
-					}),
-					/* @__PURE__ */ jsx(Line, {
-						delay: .7,
-						className: "mt-3 text-ivory/70",
-						children: "I built you a little universe."
-					}),
-					/* @__PURE__ */ jsx(Line, {
-						delay: 1.3,
-						className: "mt-8",
-						children: /* @__PURE__ */ jsx(StoryButton, {
-							tone: "gold",
-							onClick: onNext,
-							children: "Come in 🕯️"
-						})
-					})
-				] })]
-			})
-		]
-	});
-}
-//#endregion
 //#region src/assets/ending.mp4
 var ending_default = "/assets/ending-BHs2_M8Z.mp4";
 //#endregion
@@ -1938,33 +1520,15 @@ function Final({ onReplay }) {
 			if (isActive) setAudioFinished(true);
 		};
 		const delaySeconds = .5 + lines.length * 1.6;
-		audio.volume = 0;
-		const playPromise = audio.play();
-		if (playPromise !== void 0) playPromise.then(() => {
+		t = setTimeout(() => {
 			if (!isActive) return;
-			audio.pause();
-			audio.currentTime = 0;
-			audio.volume = 1;
-			t = setTimeout(() => {
-				if (!isActive) return;
-				audio.play().catch(() => {
-					if (isActive) setAudioFinished(true);
-				});
-			}, delaySeconds * 1e3);
-		}).catch(() => {
-			if (!isActive) return;
-			t = setTimeout(() => {
-				if (!isActive) return;
-				audio.volume = 1;
-				audio.play().catch(() => {
-					if (isActive) setAudioFinished(true);
-				});
-			}, delaySeconds * 1e3);
-		});
+			audio.play().catch(() => {
+				if (isActive) setAudioFinished(true);
+			});
+		}, delaySeconds * 1e3);
 		return () => {
 			isActive = false;
 			clearTimeout(t);
-			audio.pause();
 		};
 	}, [lines.length]);
 	return /* @__PURE__ */ jsxs(Scene, {
@@ -2052,9 +1616,7 @@ function Opening({ onYes }) {
 		})]).then(() => {
 			setCanContinue(true);
 		});
-		return () => {
-			audio.pause();
-		};
+		return () => {};
 	}, [hasEntered]);
 	if (!hasEntered) return /* @__PURE__ */ jsxs(Scene, {
 		className: "bg-[radial-gradient(circle_at_50%_35%,color-mix(in_oklab,var(--peach)_45%,transparent),transparent_65%)]",
@@ -2160,13 +1722,20 @@ var peace_default = "/assets/peace-Ilevablj.mp4";
 function Photos({ onNext }) {
 	const [open, setOpen] = useState(null);
 	const [audioFinished, setAudioFinished] = useState(false);
-	const audioPlayed = useRef(false);
+	useRef(false);
 	useEffect(() => {
-		if (audioPlayed.current) return;
-		audioPlayed.current = true;
+		let isActive = true;
 		const audio = new Audio(peace_default);
-		audio.onended = () => setAudioFinished(true);
-		audio.play().catch(() => setAudioFinished(true));
+		audio.onended = () => {
+			if (isActive) setAudioFinished(true);
+		};
+		audio.play().catch(() => {
+			if (isActive) setAudioFinished(true);
+		});
+		return () => {
+			isActive = false;
+			audio.pause();
+		};
 	}, []);
 	return /* @__PURE__ */ jsxs(Scene, { children: [
 		/* @__PURE__ */ jsx(Particles, { count: 14 }),
@@ -2326,27 +1895,41 @@ function Question({ lead, question, small, yesLines, onDone, doneLabel, noPopupP
 	const [mood, setMood] = useState("hopeful");
 	const [state, setState] = useState("ask");
 	const [audioFinished, setAudioFinished] = useState(!yesAudioSrc);
-	const audioPlayed = useRef(false);
-	const audioRef = useRef(null);
+	useRef(false);
+	useRef(null);
 	const [askAudioFinished, setAskAudioFinished] = useState(!askAudioSrc);
-	const askAudioPlayed = useRef(false);
-	const askAudioRef = useRef(null);
+	useRef(false);
+	useRef(null);
 	useEffect(() => {
-		if (state === "yes" && yesAudioSrc && !audioPlayed.current) {
-			audioPlayed.current = true;
+		let isActive = true;
+		if (state === "yes" && yesAudioSrc) {
 			const audio = new Audio(yesAudioSrc);
-			audioRef.current = audio;
-			audio.onended = () => setAudioFinished(true);
-			audio.play().catch(() => setAudioFinished(true));
+			audio.onended = () => {
+				if (isActive) setAudioFinished(true);
+			};
+			audio.play().catch(() => {
+				if (isActive) setAudioFinished(true);
+			});
+			return () => {
+				isActive = false;
+				audio.pause();
+			};
 		}
 	}, [state, yesAudioSrc]);
 	useEffect(() => {
-		if (state === "ask" && askAudioSrc && !askAudioPlayed.current) {
-			askAudioPlayed.current = true;
+		let isActive = true;
+		if (state === "ask" && askAudioSrc) {
 			const audio = new Audio(askAudioSrc);
-			askAudioRef.current = audio;
-			audio.onended = () => setAskAudioFinished(true);
-			audio.play().catch(() => setAskAudioFinished(true));
+			audio.onended = () => {
+				if (isActive) setAskAudioFinished(true);
+			};
+			audio.play().catch(() => {
+				if (isActive) setAskAudioFinished(true);
+			});
+			return () => {
+				isActive = false;
+				audio.pause();
+			};
 		}
 	}, [state, askAudioSrc]);
 	const sayYes = () => {
@@ -2749,6 +2332,7 @@ function Shayari({ onNext }) {
 				className: "relative z-10 flex w-full max-w-lg flex-col items-center",
 				children: [
 					/* @__PURE__ */ jsxs(Line, {
+						as: "div",
 						delay: .2,
 						className: "relative mb-8 mt-4 flex justify-center",
 						children: [
@@ -2948,7 +2532,6 @@ var SCENES = [
 	"valentine",
 	"date",
 	"reveal",
-	"cinema",
 	"shayari",
 	"final"
 ];
@@ -2958,13 +2541,9 @@ function useStoryProgress() {
 	const [hydrated, setHydrated] = useState(false);
 	useEffect(() => {
 		try {
-			if (new URLSearchParams(window.location.search).get("room")) {
-				setScene("cinema");
-				setHydrated(true);
-				return;
-			}
 			const saved = localStorage.getItem(KEY);
-			if (saved && SCENES.includes(saved)) setScene(saved);
+			if (saved === "cinema") setScene("shayari");
+			else if (saved && SCENES.includes(saved)) setScene(saved);
 		} catch {}
 		setHydrated(true);
 	}, []);
@@ -3017,7 +2596,6 @@ function Index() {
 					scene === "valentine" && /* @__PURE__ */ jsx(ValentineQuestion, { onNext: next }),
 					scene === "date" && /* @__PURE__ */ jsx(DateQuestion, { onNext: next }),
 					scene === "reveal" && /* @__PURE__ */ jsx(Reveal, { onNext: next }),
-					scene === "cinema" && /* @__PURE__ */ jsx(Cinema, { onNext: next }),
 					scene === "shayari" && /* @__PURE__ */ jsx(Shayari, { onNext: next }),
 					scene === "universe" && /* @__PURE__ */ jsx(Universe, { onNext: next }),
 					scene === "final" && /* @__PURE__ */ jsx(Final, { onReplay: restart })

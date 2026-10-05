@@ -171,7 +171,7 @@ function RootComponent() {
 }
 //#endregion
 //#region src/routes/index.tsx
-var $$splitComponentImporter$1 = () => import("./routes-BGb8JO2Y.js");
+var $$splitComponentImporter$1 = () => import("./routes-Lo49Ljs1.js");
 var TITLE = `A little universe for ${story.birthdayName} ❤️`;
 var DESC = "A tiny cartoon birthday story, made by one person for one person.";
 var Route$1 = createFileRoute("/")({
@@ -202,7 +202,7 @@ var Route$1 = createFileRoute("/")({
 });
 //#endregion
 //#region src/routes/movie-upload.tsx
-var $$splitComponentImporter = () => import("./movie-upload-DggD20l8.js");
+var $$splitComponentImporter = () => import("./movie-upload-CEcJBe4K.js");
 var Route = createFileRoute("/movie-upload")({
 	head: () => ({ meta: [
 		{ title: "Private movie upload" },
